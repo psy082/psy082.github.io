@@ -3,15 +3,29 @@
 
 
     <url>
+        <loc>http://psy082.github.io/tags/isaiyah/</loc>
+        <lastmod>2020-04-10T06:02:43.650Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/tags/meditation/</loc>
+        <lastmod>2020-04-10T06:02:43.650Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>http://psy082.github.io/tags/suffering/</loc>
-        <lastmod>2020-04-09T15:27:13.733Z</lastmod>
+        <lastmod>2020-04-10T05:57:42.032Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
         <loc>http://psy082.github.io/tags/poem/</loc>
-        <lastmod>2020-04-09T15:27:13.733Z</lastmod>
+        <lastmod>2020-04-10T05:57:42.032Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
