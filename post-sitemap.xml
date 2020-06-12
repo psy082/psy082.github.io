@@ -8,8 +8,16 @@
     </url>
 
     <url>
+        <loc>http://psy082.github.io/2020/06/11/js-function/</loc>
+        <lastmod>2020-06-12T04:31:40.024Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
         <loc>http://psy082.github.io/2020/06/08/js-closure/</loc>
-        <lastmod>2020-06-10T15:36:49.393Z</lastmod>
+        <lastmod>2020-06-12T04:22:34.488Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
