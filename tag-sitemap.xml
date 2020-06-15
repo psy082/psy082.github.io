@@ -3,6 +3,27 @@
 
 
     <url>
+        <loc>http://psy082.github.io/tags/html/</loc>
+        <lastmod>2020-06-15T14:32:30.427Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/tags/til/</loc>
+        <lastmod>2020-06-15T14:32:30.427Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/tags/css/</loc>
+        <lastmod>2020-06-15T14:32:30.427Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>http://psy082.github.io/tags/arrow-function/</loc>
         <lastmod>2020-06-12T12:06:44.142Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -39,13 +60,6 @@
 
     <url>
         <loc>http://psy082.github.io/tags/containing-block/</loc>
-        <lastmod>2020-06-09T16:14:20.285Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>http://psy082.github.io/tags/css/</loc>
         <lastmod>2020-06-09T16:14:20.285Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
