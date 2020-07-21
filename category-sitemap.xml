@@ -8,6 +8,20 @@
     </url>
 
     <url>
+        <loc>http://psy082.github.io/categories/programming/css/</loc>
+        <lastmod>2020-07-21T06:44:03.555Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/categories/programming/</loc>
+        <lastmod>2020-07-21T06:44:03.555Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>http://psy082.github.io/categories/til/</loc>
         <lastmod>2020-06-15T14:32:30.427Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -16,13 +30,6 @@
 
     <url>
         <loc>http://psy082.github.io/categories/programming/javascript/</loc>
-        <lastmod>2020-06-12T12:06:44.142Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>http://psy082.github.io/categories/programming/</loc>
         <lastmod>2020-06-12T12:06:44.142Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
@@ -38,13 +45,6 @@
     <url>
         <loc>http://psy082.github.io/categories/%25EA%25B0%259C%25EC%259D%25B8%25EC%25A0%2581%25EC%259D%25B8/</loc>
         <lastmod>2020-06-10T04:01:22.147Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>http://psy082.github.io/categories/programming/css/</loc>
-        <lastmod>2020-06-09T16:14:20.285Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
