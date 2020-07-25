@@ -3,6 +3,27 @@
 
 
     <url>
+        <loc>http://psy082.github.io/tags/chaining/</loc>
+        <lastmod>2020-07-25T11:29:16.749Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/tags/generator/</loc>
+        <lastmod>2020-07-25T11:29:16.749Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/tags/js/</loc>
+        <lastmod>2020-07-25T11:29:16.749Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>http://psy082.github.io/tags/html/</loc>
         <lastmod>2020-07-22T03:10:13.724Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -32,13 +53,6 @@
 
     <url>
         <loc>http://psy082.github.io/tags/function/</loc>
-        <lastmod>2020-06-12T12:06:44.142Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>http://psy082.github.io/tags/js/</loc>
         <lastmod>2020-06-12T12:06:44.142Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
