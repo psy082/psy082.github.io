@@ -8,6 +8,20 @@
     </url>
 
     <url>
+        <loc>http://psy082.github.io/categories/programming/javascript/</loc>
+        <lastmod>2021-06-05T08:30:57.211Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/categories/programming/</loc>
+        <lastmod>2021-06-05T08:30:57.211Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
         <loc>http://psy082.github.io/categories/%25EA%25B0%259C%25EC%259D%25B8%25EC%25A0%2581%25EC%259D%25B8/%25EC%2597%2590%25EC%2584%25B8%25EC%259D%25B4/</loc>
         <lastmod>2020-10-27T07:51:10.705Z</lastmod>
         <changefreq>weekly</changefreq>
@@ -17,20 +31,6 @@
     <url>
         <loc>http://psy082.github.io/categories/%25EA%25B0%259C%25EC%259D%25B8%25EC%25A0%2581%25EC%259D%25B8/</loc>
         <lastmod>2020-10-27T07:51:10.705Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>http://psy082.github.io/categories/programming/javascript/</loc>
-        <lastmod>2020-08-04T04:44:41.238Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.2</priority>
-    </url>
-
-    <url>
-        <loc>http://psy082.github.io/categories/programming/</loc>
-        <lastmod>2020-08-04T04:44:41.238Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>

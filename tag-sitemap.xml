@@ -3,21 +3,28 @@
 
 
     <url>
-        <loc>http://psy082.github.io/tags/closure/</loc>
-        <lastmod>2020-08-04T04:44:41.238Z</lastmod>
+        <loc>http://psy082.github.io/tags/execution-context/</loc>
+        <lastmod>2021-06-05T08:30:57.211Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
-        <loc>http://psy082.github.io/tags/lexical-scope/</loc>
-        <lastmod>2020-08-04T04:44:41.238Z</lastmod>
+        <loc>http://psy082.github.io/tags/closure/</loc>
+        <lastmod>2021-06-05T08:30:57.211Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
     </url>
 
     <url>
         <loc>http://psy082.github.io/tags/js/</loc>
+        <lastmod>2021-06-05T08:30:57.211Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.2</priority>
+    </url>
+
+    <url>
+        <loc>http://psy082.github.io/tags/lexical-scope/</loc>
         <lastmod>2020-08-04T04:44:41.238Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.2</priority>
