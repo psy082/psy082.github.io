@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>JS 실행 컨텍스트 이해하기 - dev&#039;log</title><meta description="Dave&amp;#39;s blog"><meta property="og:type" content="blog"><meta property="og:title" content="JS 실행 컨텍스트 이해하기"><meta property="og:url" content="http://psy082.github.io/"><meta property="og:site_name" content="dev&#039;log"><meta property="og:description" content="Dave&amp;#39;s blog"><meta property="og:locale" content="ko_KR"><meta property="article:published_time" content="2021-02-25T11:50:00.000Z"><meta property="article:modified_time" content="2021-06-05T08:30:57.211Z"><meta property="article:author" content="Dave Kim"><meta property="article:tag" content="JS"><meta property="article:tag" content="closure"><meta property="article:tag" content="execution context"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="http://psy082.github.io/img/default/dev_logo.jpeg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://psy082.github.io/2021/02/25/seminar-execution-context/"},"headline":"dev'log","image":["http://psy082.github.io/img/post/JavaScriptImg.png"],"datePublished":"2021-02-25T11:50:00.000Z","dateModified":"2021-06-05T08:30:57.211Z","author":{"@type":"Person","name":"Dave Kim"},"description":"올해 초 회사 내 신입사원들이 진행하는 세미나에서 발표한 내용을 git blog에 옮겨보았다.해당 발표에서는 execution context의 동작 방식과 js가 어떻게 execution context를 바탕으로 closure 환경을 제공하는지를 다루었다."}</script><link rel="canonical" href="http://psy082.github.io/2021/02/25/seminar-execution-context/"><link rel="icon" href="/img/default/web-development.svg"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-163248250-1" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'UA-163248250-1');</script><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/default/dev_logo.jpeg" alt="dev&#039;log" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/psy082/psy082.git"><i class="fab fa-github"></i></a><a class="navbar-item search" title="검색" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-9-tablet is-9-desktop is-9-widescreen"><div class="card"><div class="card-image"><span class="image is-7by3"><img class="thumbnail" src="/img/post/JavaScriptImg.png" alt="JS 실행 컨텍스트 이해하기"></span></div><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2021-02-25T11:50:00.000Z" title="2021-02-25T11:50:00.000Z">2021-02-25</time><span class="level-item"><a class="link-muted" href="/categories/programming/">Programming</a><span> / </span><a class="link-muted" href="/categories/programming/javascript/">JavaScript</a></span></div></div><h1 class="title is-3 is-size-4-mobile">JS 실행 컨텍스트 이해하기</h1><div class="content"><p>올해 초 회사 내 신입사원들이 진행하는 세미나에서 발표한 내용을 git blog에 옮겨보았다.<br>해당 발표에서는 execution context의 동작 방식과 js가 어떻게 execution context를 바탕으로 closure 환경을 제공하는지를 다루었다. </p>
+<a id="more"></a>
+
+
+<h3 id="1-도입"><a href="#1-도입" class="headerlink" title="1. 도입"></a>1. 도입</h3><ul>
+<li>실행 결과 예측해보기</li>
+</ul>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div><div style="line-height:130%">12</div><div style="line-height:130%">13</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">const</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">1</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;foo()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;y&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">2</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ff3399">function</span>&nbsp;bar&nbsp;()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;z&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">3</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;y&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;z);</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;bar();</div><div style="padding:0 6px; white-space:pre; line-height:130%">};</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();&nbsp;<span style="color:#999999">//&nbsp;실행&nbsp;결과는?</span></div></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+<br>
+
+<p>→ function foo 는 어떻게 동작하는가?</p>
+<br>
+
+<p>Javascript는 script 언어이다. script언어 특성 상 <b>언어의 해석과 실행은 메모리 위에서 런타임에</b> 이루어 진다. c와 java와 같은 compile 언어는 기계어 혹은 바이트 코드로 번역된 결과물이 실행되지만 Javascript는 텍스트 파일이 해석되고 실행된다. 그렇다면 javascript 코드의 해석과 실행은 어떤 과정으로 이루어 질까? js engine은 javascript 문법으로 작성된 텍스트 파일을 parsing &amp; interpreting 하는데 소스코드라는 단위로 실행한다.</p>
+<br>
+
+<ul>
+<li><b>소스코드의 종류</b> (참조 <a href="https://262.ecma-international.org/6.0/#sec-types-of-source-code">https://262.ecma-international.org/6.0/#sec-types-of-source-code</a>)</li>
+</ul>
+<p>소스코드라는 단어 자체는 우리가 굉장히 흔하게 쓰는 단어이지만 ECMAScript spec에서는 소스코드를 별도로 정의하고 있다. ECMAScript spec을 보면 다음 4개의 타입의 코드를 소스 코드라고 정의하며 javascript engine은 다음 4가지의 소스 코드를 실행의 단위로 생각한다.</p>
+<br>
+
+<table>
+<thead>
+<tr>
+<th>type</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>전역 코드 &nbsp;</td>
+<td>전역에 존재하는 소스코드, 전역에 정의된 함수, 클래스 등의 내부 코드는 포함되지 않는다.<br> <br>(Javascript는 로드와 동시에 바로 해석과 실행이 되기 때문에 c와 Java와 같은 실행 시작 점(main 함수)과 같은 역할을 전역 코드가 담당한다. )</td>
+</tr>
+<tr>
+<td>함수 코드 &nbsp;</td>
+<td>함수 내부에 존재하는 소스코드(function body)를 말한다. 함수 내부에 중첩된 함수, 클래스 등의 내부 코드는 포함되지 않는다.</td>
+</tr>
+<tr>
+<td>eval 코드 &nbsp;</td>
+<td>빌트인 전역 함수인 eval 함수에 인수로 전달되어 실행되는 소스코드</td>
+</tr>
+<tr>
+<td>모듈 코드 &nbsp;</td>
+<td>모듈 내부에 존재하는 소스코드를 말한다. 모듈 내부의 함수, 클래스 등의 내부 코드는 포함되지 않는다.</td>
+</tr>
+</tbody></table>
+<br>
+
+<p>즉, 위의 소스 코드들은 javascript 엔진에 의해 텍스트가 해석(parsing &amp; interpreting)되면서 동시에 실행(evaluating &amp; executing)되는 대상이다.</p>
+<p>이 소스코드가 실행될 때 실행컨택스트라고도 부르는 콜 스택이 생성된다. 실행 컨텍스트는 javascript의 콜 스택이다. </p>
+<p>따라서 우리가 실행 컨텍스트가 콜 스택이라는 것을 생각한다면 실행 컨텍스트의 개념이 어렵게 다가오지는 않을 것이다. (물론 이렇게 단순하지는 않고 독특한 특징을 가지고 있다. 앞으로 설명할 것이다.)</p>
+<p>실행 컨텍스트를 콜 스택이라고 생각한다면 앞에서 나온 예제 코드의 실행 컨텍스트의 변화를 쉽게 그릴 수 있다.</p>
+<br>
+<div style="text-align:center">
+<img src="/img/post/execution-context/simple_context_1.png" width="80%" >
+</div>
+<div style="text-align:center">
+<span style="font-size: 13px">출처.https://meetup.toast.com/posts/123 </span>
+</div>
+<br>
+
+<p>4가지 타입에 따라서 실행 컨텍스트 내부의 구성(정확하게는 실행 컨텍스트가 가리키는 렉시컬 환경(Lexical Environment) 내부의 구성)이 달라지는데,</p>
+<p>오늘은 중요한 내용인 전역 코드와 함수 코드의 실행 컨텍스트에 대해서만 설명하려고 한다.</p>
+<br>
+<br>
+
+<p>❓ Javascript의 콜 스택, 실행 컨텍스트를 이해하는 게 유용한 이유는?</p>
+<br>
+
+<p>Javascript의 호이스팅, 클로저와 같은 특성들이 어떤 동작으로 인해 생기는 지 이해할 수 있다. → 코드의 동작 이해하는 데 도움이 되고, 특히 변수의 스코프를 예상할 수 있다.</p>
+<p>오늘 다루지는 않지만 generator의 동작의 기반도 실행 컨텍스트와 Lexical Environment이다. 제네레이터의 동작을 이해하는 데도 도움이 된다.  </p>
+<p>따라서 오늘 설명의 목표는 실행 컨텍스트의 구성과 동작을 대략적으로 이해해서 Javascript에서의 변수, 함수의 스코프를 예상할 때 도움을 얻는 것이다.</p>
+<br>
+
+<h3 id="2-소스코드의-실행"><a href="#2-소스코드의-실행" class="headerlink" title="2. 소스코드의 실행"></a>2. 소스코드의 실행</h3><p>javascript 소스코드의 실행은 소스코드의 평가와 소스코드의 실행이라는 2개의 과정으로 나뉜다. 아래의 예제를 가지고 2개의 과정을 살펴보겠다.</p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;foo()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">var</span>&nbsp;a&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">1</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">let</span>&nbsp;b&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">2</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;c&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">3</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">function</span>&nbsp;bar()&nbsp;{}</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();</div></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+
+<p>그 전에 Quiz </p>
+<p>❓ 위의 코드는 앞의 소스코드 정의에 따르면 2개 종류의 소스코드가 존재한다. 어떤 코드들이 존재하는가?</p>
+<br>
+
+<details>
+<summary>정답은?</summary>
+<div markdown="1">
+<br>
+
+<ol>
+<li>전역코드</li>
+<li>foo 함수 코드</li>
+</ol>
+<p>따라서 위의 코드의 실행에서는 2개의 실행 컨텍스트가 생성될 것이다.</p>
+<br>
+<div style="text-align:center">
+<img src="/img/post/execution-context/simple_context_2.png" width="80%" >
+</div>
+<div style="text-align:center">
+</div>
+</div>
+</details>
+<br>
+<br>
+
+
+<p>그러면 소스코드의 실행 시점 중에서 실행 컨텍스트는 언제 생성될까? </p>
+<p><b>실행 컨텍스트는 소스 코드의 평가 이전에 생성된다.</b></p>
+<br>
+
+<p>실행컨텍스트 생성 → 소스코드 평가 → 소스코드 실행 의 순서로 진행된다.</p>
+<br>
+
+<p>자바스크립트 엔진은 소스코드를 평가 하기 전에 실행 컨텍스트(Execution Context)와 렉시컬 환경(Lexical Environment)이라는 것을 생성한다.  그 다음 실행 컨텍스트가 렉시컬 환경의 참조 값을 가지도록 한다. 간단하게 그림으로 그리면 아래와 같다.</p>
+<br>
+<div style="text-align:center">
+<img src="/img/post/execution-context/execution_context_1.png" width="80%" >
+</div>
+
+<br>
+
+<p>실제 lexical environment와 environment record는 위의 그림과 조금 다르지만 거의 유사하다. Execution Context Stack이 콜 스택이다. Lexical Environment는 EnvironmentRecord에 식별자와 값의 쌍을 저장하는 Environment Record와 This값이 저장된 ThisValue를 가지고 있다.</p>
+<p>OuterLexicalEnvironment Reference에는 자신을 생성한 Lexical Environment의 참조 값을 저장된다. 만약 전역 코드라면  OuterLexicalEnvironment Reference이 뭐가 될까? 전역 코드는 자신을 생성한 Lexical Environment가 없기 때문에 항상 null 값을 저장한다.<br><br></p>
+<h4 id="1-소스-코드의-평가"><a href="#1-소스-코드의-평가" class="headerlink" title="1) 소스 코드의 평가"></a>1) 소스 코드의 평가</h4><p>실행 컨텍스트와 렉시컬 환경이 생성되면 소스코드의 평가가 시작 된다. 소스코드 평가 때는 소스코드에서 변수, 함수등의 선언문만 먼저 실행하여 렉시컬 환경의 환경 레코드에 저장한다.</p>
+<p>바로 이 지점이 hoisting이 발생하는 지점이다. 자바스크립트 소스코드에서는 실행 전 평가 시점에 모든 변수들이 이미 environment record에 등록된다.</p>
+<p>그래서 </p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#4be6fa">console</span>.log(x)</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">var</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">1</span>;</div></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+
+<p>위의 코드를 실행해 보면 ‘x is not defined’ error 가 뜨는 것이 아니라 undefined가 출력 된다.  소스코드 상 var x = 1; 이 console.log(x) 보다 뒤에 있지만 실행 전 평가 시점에 이미 x : undefined 로 등록이 되어 있기 때문에 이런 결과가 나온다. </p>
+<p>소스코드의 평가가 끝난 시점에서는 var로 생성된 변수는 등록과 동시에 undefined로 값이 초기화 되고 let과 const으로 선언된 변수의 경우 초기화가 이루어 지지 않고 uninitialized 상태가 된다.</p>
+<p>다시 예제 코드로 돌아가보면 </p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;foo()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">var</span>&nbsp;a&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">1</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">let</span>&nbsp;b&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">2</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;c&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">3</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">function</span>&nbsp;bar()&nbsp;{}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();&nbsp;<span style="color:#999999">//&nbsp;1.&nbsp;Call</span></div></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+
+<p>전역 코드가 실행 되면서 평가 전에 전역 실행 컨텍스트와 전역 렉시컬 환경이 생성될 것이다. 그 다음 평가가 시작되고 전역 코드 내의 모든 변수, 함수 선언 문이 전역 렉시컬 환경의 환경 레코드에 저장된다. </p>
+<p>foo함수의 경우 평가 후, 실행 전에는 아래와 같은 실행 컨텍스트와 렉시컬 환경이 만들어 진다. (물론 실제로 아래와 같이 구성되는 것은 아니다.)</p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#999999">//&nbsp;Running&nbsp;execution&nbsp;context의&nbsp;LexicalEnvironment</span></div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;environmentRecord:&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;a:&nbsp;<span style="color:#0086b3">undefined</span>,</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;b:&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">&lt;</span>uninitialized<span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>,</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;c:&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">&lt;</span>uninitialized<span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>,</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;bar:&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">&lt;</span>Function<span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span></div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;},</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;outer:&nbsp;foo.[[Environment]]</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div></div><div style="text-align:right;margin-top:-13px;margin-right:5px;font-size:9px;font-style:italic"><a href="http://colorscripter.com/info#e" target="_blank" style="color:#4f4f4ftext-decoration:none">Colored by Color Scripter</a></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<div style="text-align:right">
+<span style="font-size: 13px">출처.https://meetup.toast.com/posts/129 </span>
+</div>
+<br>
+
+<h3 id="3-실행-컨텍스트와-Lexical-Environment의-구성"><a href="#3-실행-컨텍스트와-Lexical-Environment의-구성" class="headerlink" title="3. 실행 컨텍스트와 Lexical Environment의 구성"></a>3. 실행 컨텍스트와 Lexical Environment의 구성</h3><br>
+앞에서는 전역 실행 컨텍스트와 함수 실행 컨텍스트를 구분하지 않고 간단하게 설명을 했는데,
+
+<p>이번에는 예시 코드와 그림을 이용해서 전역 실행 컨텍스트와 함수 실행 컨텍스트의 구성을 더 자세히 살펴보겠다.</p>
+<br>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div><div style="line-height:130%">12</div><div style="line-height:130%">13</div><div style="line-height:130%">14</div><div style="line-height:130%">15</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">var</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">1</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">const</span>&nbsp;y&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">2</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;foo(a)&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">var</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">3</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;y&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">4</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">function</span>&nbsp;bar&nbsp;(b)&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;z&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">5</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(a&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;b&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;y&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;z);</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;bar(<span style="color:#c10aff">10</span>);</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo(<span style="color:#c10aff">20</span>);&nbsp;<span style="color:#999999">//&nbsp;foo&nbsp;함수&nbsp;평가&nbsp;후&nbsp;실행&nbsp;전의&nbsp;실행&nbsp;컨텍스트와&nbsp;Lexical&nbsp;Environment</span></div></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+
+<br>
+<div style="text-align:center">
+<img src="/img/post/execution-context/execution_context_2.png" width="80%" >
+</div>
+<div style="text-align:right">
+<span style="font-size: 13px">출처.모던 자바스크립트 Deep Dive. 23.6 실행 컨택스트의 생성과 식별자 검색 과정 이웅모 저 </span>
+</div>
+<br>
+
+<p>전역 객체(브라우저의 경우 window, node의 경우 global) 생성</p>
+<p>전역 코드 실행</p>
+<ul>
+<li>전역 실행 컨텍스트 생성</li>
+<li>전역 렉시컬 환경 생성 <ul>
+<li>전역 환경 레코드 생성<ul>
+<li>객체 환경 레코드 생성 : 전역 환경을 전역 객체와 연결하기 위해 사용한다.(import 없이 dom과 Math와 같은 빌트인 객체를 사용할 수 있는 이유), var로 선언되는 변수들을 전역 객체의 property로 저장된다 → 콘솔에서 확인할 수 있다.</li>
+<li>선언적 환경 레코드 생성 : let, const와 같이 block scope 변수들의 저장</li>
+</ul>
+</li>
+<li>this 바인딩 : this에 전역 객체 바인딩</li>
+<li>외부 렉시컬 환경에 대한 참조 결정 </li>
+</ul>
+</li>
+</ul>
+<p>foo 함수 실행</p>
+<ul>
+<li>함수 실행 컨텍스트 생성</li>
+<li>함수 렉시컬 환경 생성<ul>
+<li>함수 환경 레코드 생성</li>
+<li>this 바인딩 (this 바인딩은 이후에 함수에서 따로 설명)</li>
+<li>외부 렉시컬 환경에 대한 참조 결정</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="4-렉시컬-스코프-vs-다이나믹-스코프"><a href="#4-렉시컬-스코프-vs-다이나믹-스코프" class="headerlink" title="4. 렉시컬 스코프 vs 다이나믹 스코프"></a>4. 렉시컬 스코프 vs 다이나믹 스코프</h3><p>오늘 closure에 대해서도 설명을 하려고 하는데 그 전에 잠깐 scope에 대해서 정리해보려고 한다.</p>
+<p>실행 컨텍스트는 컴파일 언어의 콜 스택과는 조금 다른 특징을 가진다. 여태까지 설명을 들었을 때는 일반적인 콜스택과 크게 다른 점이 없어 보였는데 어떤 부분이 다르다는 것일까?</p>
+<p>바로 실행 컨텍스트가 생성될 때 같이 생성하는 렉시컬 환경 때문에 다른 점이 발생한다. 렉시컬 환경은 실행 컨텍스트 생성 때 같이 생성되는 것은 맞지만 렉시컬 환경을 사용하는 대상이 실행 컨텍스트만 있는 것은 아니다.</p>
+<p>아래의 예시를 보자</p>
+<br>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;foo()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">var</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">15</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(x);</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;bar()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(x);</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();&nbsp;<span style="color:#999999">//&nbsp;실행&nbsp;결과는?</span></div><div style="padding:0 6px; white-space:pre; line-height:130%">bar();&nbsp;<span style="color:#999999">//&nbsp;실행&nbsp;결과는?</span></div></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+
+<details>
+<summary>정답은?</summary>
+<div markdown="1">
+<br>
+
+<p>15</p>
+<p>Uncaught ReferenceError: x is not defined</p>
+</details>
+<br>
+<br>
+
+<p>우리가 선언하는 변수는 2가지 특성을 가진다. 하나는 변수가 사용되는 범위인 스코프이고, 다른 하나는 변수가 사용되는 기간인 라이프사이클이다.(두 특성은 잘 혼동되지만 다른 특성이다.) js는 함수 스코프와 블록 스코프 두가지를 제공한다. 함수 스코프는 변수가 사용되는 범위가 함수 내부라는 의미이고, 블록 스코프는 변수가 사용되는 범위가 블록 내부라는 의미이다. 위의 예제를 보면서 scope를 이해해 보자. bar는 변수 x를 사용할 수 없다. 자신의 함수 body 내부에서 x가 선언되지 않았기 때문이다. 반면 foo는 함수 body 내부에 x가 선언되었기 때문에 사용가능하다.</p>
+<p>그러면 이제 아래 예시를 보자.</p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div><div style="line-height:130%">12</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;foo()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(x);</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">function</span>&nbsp;bar()&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">var</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">15</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;foo();</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">var</span>&nbsp;x&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">10</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();&nbsp;<span style="color:#999999">//&nbsp;실행&nbsp;결과는?</span></div><div style="padding:0 6px; white-space:pre; line-height:130%">bar();&nbsp;<span style="color:#999999">//&nbsp;실행&nbsp;결과는?</span></div></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+
+<p>그렇다면 위의 예시의 결과는 어떨까?</p>
+<details>
+<summary>정답은?</summary>
+<div markdown="1">
+<br>
+
+<p>foo와 bar의 실행 모두 10이 출력 된다. </p>
+<p>bar 함수에서 foo 함수를 실행한 결과는 왜 15가 아니고 10이 될까? </p>
+<p>그건 javascript가 lexical scope 언어이기 때문이다. </p>
+<p>lexical scope(정적 스코프) 언어는 자신의 스코프에 변수가 없을 때, 자신이 생성된 환경에서 해당 변수를 찾는다.(앞선 예시에서는 bar가 생선된 환경에서도 x가 선언되지 않았기 때문에 에러가 발생했다.) 반대로 dynamic scope(동적 스코프) 언어는 자신의 스코프에 변수가 없을 때, 자신을 호출한 환경에서 해당 변수를 찾는다.</p>
+<p>만약에 javascript가 dynamic scope 언어였다면 bar 함수의 실행 결과는 15가 되었을 것이다. </p>
+<p>그런데 조금 더 생각해보면 이상하다. var x = 10; 도 실행의 결과인데, dynamic scope 인거 아닌가? 하는 의문이 생길 수도 있는데, 실행 컨텍스트가 생성될 때 실행 컨텍스트는 렉시컬 환경의 참조 값을 가지고 있다는 사실을 기억하자</p>
+</details>
+<br>
+<br>
+
+<p>실행 컨텍스트 생성 이후에 생성하는 렉시컬 환경은 실행 컨텍스트만 참조하는 것이 아니다. 렉시컬 환경 A에서 생성된 함수가 [[Environment]] 에 렉시컬 환경 A의 참조값을 저장하고 있다. 여기서 우리는 실행 컨텍스트가 콜스택일 뿐만 아니라 동시에 렉시컬 환경을 제공해주는 연결점을 얻게 되었다. 렉시컬 환경은 실행 컨텍스트의 입장에서는 실행 환경이 맞다. 그러나 실행 컨텍스트와 렉시컬 환경이 참조 값으로 연결된 다소 느슨한 관계 이기 때문에 실행 환경인 동시에 해당 렉시컬 환경에서 생성된 함수에게는 dynamic scope가 아닌 lexical scope를 제공할 수 있는 것이다.</p>
+<p>아래의 예제 코드는 앞의 소스코드의 평가를 설명했던 사용했던 예제인데 우리가 무심코 넘긴 부분이 있다. 바로 outer 값이다. 아래의 렉시컬 환경은 foo 함수 내부의 렉시컬 환경인데 foo 실행 전에 생성된 것이다. foo 함수 내부의 렉시컬 환경의 outer 값을 보면 foo.[[Environment]] 값 즉 foo 함수를 생성했을 때의 렉시컬 환경의 참조 값을 가지고 있다.  즉 예제를 통해 렉시컬 환경이 실행 컨텍스트가 생성 될 때 같이 생성 되지만 생성된 이후에는 실행 컨텍스트에 의해서만 사용되는 것이 아니라 function에 의해서도 사용된다는 것을 알 수 있다. </p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#999999">//&nbsp;Running&nbsp;execution&nbsp;context의&nbsp;LexicalEnvironment</span></div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;environmentRecord:&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;a:&nbsp;<span style="color:#0086b3">undefined</span>,</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;b:&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">&lt;</span>uninitialized<span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>,</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;c:&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">&lt;</span>uninitialized<span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>,</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;bar:&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">&lt;</span>Function<span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span></div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;},</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;outer:&nbsp;foo.[[Environment]]</div><div style="padding:0 6px; white-space:pre; line-height:130%">}</div></div><div style="text-align:right;margin-top:-13px;margin-right:5px;font-size:9px;font-style:italic"><a href="http://colorscripter.com/info#e" target="_blank" style="color:#4f4f4ftext-decoration:none">Colored by Color Scripter</a></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<div style="text-align:right">
+<span style="font-size: 13px">출처.https://meetup.toast.com/posts/129 </span>
+</div>
+<br>
+
+<p>정리하면  javascript의 렉시컬 환경은 실행 컨텍스트에게는 실행 환경의 역할을 하고 생성된 함수에게는  lexical environment(정적 환경 - 생성되었을 때의 환경)의 역할을 하게 되는 것이다. javascript 함수가 런타임에 생성되지만 lexical scope을 제공할 수 있는 이유가 여기에 있다. 함수가 렉시컬 환경 값을 [[Environment]]에 저장하고 있기 때문에, 자신의 스코프에 없는 변수를 찾을 때 자신을 호출한 실행 컨텍스트의 렉시컬 환경을 찾지 않고 자신이 생성 되었을 때의 렉시컬 환경을 찾을 수 있는 것이다. </p>
+<h3 id="5-Closure"><a href="#5-Closure" class="headerlink" title="5. Closure"></a>5. Closure</h3><br>
+
+<p><i>“A Closure is the conbination of a function and the lexical environment within which that function was declared.” - MDN Closures<br>클로저는 함수와 그 함수가 선언된 렉시컬 환경과의 조합이다. - MDN문서 Closures</i></p>
+<br>
+
+<p><i>“클로저는 자바스크립트의 고유의 개념이 아니다. 함수를 일급 객체로 취급하는 함수형 프로그래밍 언어에서 사용되는 중요한 특성이다.” - 모던 자바스크립트 Deep Dive 24장 클로저</i></p>
+<br>
+
+<p><i> “lexical”이란, 어휘적 범위 지정(lexical scoping) 과정에서 변수가 어디에서 사용 가능한지 알기 위해 그 변수가 소스코드 내 어디에서 선언되었는지 고려한다는 것을 의미한다. - MDN문서 Closures</i></p>
+<br>
+
+<p>클로저는 자바스크립트만 가지고 있는 특성/개념이 아니다 . 함수를 일급 객체로 취급하는 함수형 프로그래밍 언어, 여태까지 설명한 내용을 가지고 설명을 하자면 런타임에 함수를 생성하는 lexical scoping 언어라면 모두 가지고 있는 특성이다.</p>
+<p>클로저에 대한 설명 자체만으로는 의미가 잘 와 닿지 않지만 앞서서 렉시컬 환경과 함수 객체의 Environment 값에 대해서 설명을 했기 때문에, 함수와 그 함수가 선언된 렉시컬 환경과의 조합이라는 말이 어렴풋하게는 이해가 될 것이다. (안된다면 여태까지 설명한 것 실패…)</p>
+<p>예제를 살피면서 클로저가 어떤 상황에서 그 특성이 부각되는 지 알아보려고 한다. 아래의 예제를 보자.</p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">const</span>&nbsp;outerFunc&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;()&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span><span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">let</span>&nbsp;i&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">100</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;innerFunc&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;()&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span><span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(<span style="color:#ffd500">"In&nbsp;innerFunc,&nbsp;the&nbsp;i&nbsp;is&nbsp;"</span>&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;i);</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ff3399">return</span>&nbsp;i&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;<span style="color:#c10aff">1</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;};</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;i&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;innerFunc();</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(<span style="color:#ffd500">"In&nbsp;outerrFunc,&nbsp;the&nbsp;i&nbsp;is&nbsp;"</span>&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;i);</div><div style="padding:0 6px; white-space:pre; line-height:130%">};</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">outerFunc();</div></div><div style="text-align:right;margin-top:-13px;margin-right:5px;font-size:9px;font-style:italic"><a href="http://colorscripter.com/info#e" target="_blank" style="color:#4f4f4ftext-decoration:none">Colored by Color Scripter</a></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+
+<p>위의 예제를 보면 outerFunc 함수 내부에 innerFunc가 생성되고 innerFunc의 실행이 outerFunc 실행 내부에서 이루어 진다.<br>이런 경우에도 클로저라고 할 수 있을까? </p>
+<p>클로저라고 할 수 있다. 하지만 클로저로서의 의미가 없는 클로저이다.<br>앞서 변수에는 2가지 특성이 있다고 했는데 위의 예제에서 만들어진 클로저는 변수의 라이프 사이클이 outerFunc의 실행 종료와 함께 종료되기 때문에 의미 있게 사용되지 못한다.</p>
+<p>그러면 이번에는 의미가 있는 클로저의 예제를 보겠다.<br>아래의 소스코드를 보면 outerFunc를 실행할 경우 outerFunc 함수 내부에서 생성한 innerFunc를 반환한다.</p>
+<p>이런 경우는 소스코드의 진행이 어떻게 될까?</p>
+<div class="colorscripter-code" style="color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important; position:relative !important;overflow:auto"><table class="colorscripter-code-table" style="margin:0;padding:0;border:none;background-color:#272727;border-radius:4px;" cellspacing="0" cellpadding="0"><tr><td style="padding:6px;border-right:2px solid #4f4f4f"><div style="margin:0;padding:0;word-break:normal;text-align:right;color:#aaa;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="line-height:130%">1</div><div style="line-height:130%">2</div><div style="line-height:130%">3</div><div style="line-height:130%">4</div><div style="line-height:130%">5</div><div style="line-height:130%">6</div><div style="line-height:130%">7</div><div style="line-height:130%">8</div><div style="line-height:130%">9</div><div style="line-height:130%">10</div><div style="line-height:130%">11</div><div style="line-height:130%">12</div><div style="line-height:130%">13</div><div style="line-height:130%">14</div></div></td><td style="padding:6px 0;text-align:left"><div style="margin:0;padding:0;color:#f0f0f0;font-family:Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;line-height:130%"><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">const</span>&nbsp;outerFunc&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;()&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span><span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">let</span>&nbsp;i&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;<span style="color:#c10aff">100</span>;</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">const</span>&nbsp;innerFunc&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;()&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span><span style="color:#aaffaa"></span><span style="color:#ff3399">&gt;</span>&nbsp;{</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#4be6fa">console</span>.log(<span style="color:#ffd500">"It's&nbsp;external&nbsp;the&nbsp;i&nbsp;is&nbsp;"</span>&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;i);</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ff3399">return</span>&nbsp;(i&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;i&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">+</span>&nbsp;<span style="color:#c10aff">1</span>);</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;};</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;&nbsp;<span style="color:#ff3399">return</span>&nbsp;innerFunc;</div><div style="padding:0 6px; white-space:pre; line-height:130%">};</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%"><span style="color:#ff3399">let</span>&nbsp;foo&nbsp;<span style="color:#aaffaa"></span><span style="color:#ff3399">=</span>&nbsp;outerFunc();</div><div style="padding:0 6px; white-space:pre; line-height:130%">&nbsp;</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();</div><div style="padding:0 6px; white-space:pre; line-height:130%">foo();</div></div><div style="text-align:right;margin-top:-13px;margin-right:5px;font-size:9px;font-style:italic"><a href="http://colorscripter.com/info#e" target="_blank" style="color:#4f4f4ftext-decoration:none">Colored by Color Scripter</a></div></td><td style="vertical-align:bottom;padding:0 2px 4px 0"><a href="http://colorscripter.com/info#e" target="_blank" style="text-decoration:none;color:white"><span style="font-size:9px;word-break:normal;background-color:#4f4f4f;color:white;border-radius:10px;padding:1px">cs</span></a></td></tr></table></div>
+<br>
+
+<p>위의 예제에서는 outerFunc 내부에서 생성한 innerFunc가 변수 i를 가지고 있는 클로저가 외부에 반환된다. 따라서 외부에서 클로저를 사용할 수 있기 때문에 의미 있는 클로저가 만들어졌다. 이번 주제에서는 클로저가 주요 주제가 아니기 때문에 클로저를 사용한 예를 다루지 않았지만 간단히 예를 들어보면 이벤트 핸들러롤 넘기는 함수를 다른 변수들과 함께 넘기고 싶다면 외부 함수를 만들어 매개변수를 받게 하고 해당 매개변수를 사용하는 이벤트 핸들러 함수를 반환하는 클로저 함수를 만들 수도 있다. 그외에도 클로저를 활용하여 클래스의 static 변수를 만드는 예도 있다.  </p>
+<p>여기서 기억할 점은 다이어그램에서 다 표현하지 못했지만 클로저가 생성되기 위해서는 내부 함수가 자신의 스코프에서 생성하지 않은 변수, 즉 렉시컬 환경에서 생성된 변수를 사용하고 있어야 한다는 것이다. 자신의 스코프에서 생성하지 않았지만 렉시컬 환경을 이용하여 사용할 수 있는 변수들을 자유 변수(free variable)이라고 한다. 클로저는 함수실행이 종료된 이후에도 내부 함수가 외부로 반환되면서 생기는 자유 변수들이 갇힌 공간이다. 만약에 내부 함수가 자유 변수를 사용하고 있지 않다면 자바스크립트 엔진은 최적화를 위해서 내부 함수의 렉시컬 환경을 제거한다. 또한 렉시컬 환경의 변수가 여러 개일 때, 일부의 자유 변수만 사용하는 경우에도 사용하는 자유 변수를 제외하고는 다 제거한다. </p>
+<br>
+
+<p>참고 자료</p>
+<ul>
+<li><p><a href="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=251552545">모던 자바스크립트 Deep Dive. 이웅모 저</a></p>
+</li>
+<li><p><a href="https://262.ecma-international.org/6.0/">ECMAScript® 2015 Language Specification</a></p>
+</li>
+<li><p><a href="https://homoefficio.github.io/2016/01/16/JavaScript-%EC%8B%9D%EB%B3%84%EC%9E%90-%EC%B0%BE%EA%B8%B0-%EB%8C%80%EB%AA%A8%ED%97%98/">JavaScript 식별자 찾기 대모험</a></p>
+</li>
+<li><p>NHN Cloud Meetup! 블로그</p>
+<ul>
+<li><p><a href="https://meetup.toast.com/posts/118">자바스크립트 함수 (1) - 함수 객체, 함수 객체 생성</a></p>
+</li>
+<li><p><a href="https://meetup.toast.com/posts/123">자바스크립트 함수 (2) - 함수 호출</a></p>
+</li>
+<li><p><a href="https://meetup.toast.com/posts/129">자바스크립트 함수(3) - Lexical Environment</a></p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=h80tLv0fn88&list=PLBNdLLaRx_rKOFzA3txlG5rf9ZaVUuvmv&index=2">코드스피츠 78 ES6+ 함수와 OOP 2회차 스터디</a></li>
+</ul>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/js/">JS</a><a class="link-muted mr-2" rel="tag" href="/tags/closure/">closure</a><a class="link-muted mr-2" rel="tag" href="/tags/execution-context/">execution context</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2021/08/15/codesum-week-1/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">코드숨 React 5기 - 1주차 회고</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/10/27/brandi-internship-3/"><span class="level-item">Brandi Internship - Part 3</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">댓글</h3><div id="disqus_thread"><noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div><script>var disqus_config = function () {
+            this.page.url = 'http://psy082.github.io/2021/02/25/seminar-execution-context/';
+            this.page.identifier = '2021/02/25/seminar-execution-context/';
+        };
+        (function() {
+            var d = document, s = d.createElement('script');  
+            s.src = '//' + 'davlog' + '.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();</script></div></div></div><!--!--><div class="column column-right is-4-tablet is-4-desktop is-3-widescreen  order-3"><div class="card widget"><div class="card-content"><h3 class="menu-label">최근 글</h3><article class="media"><a class="media-left" href="/2021/08/15/codesum-week-1/"><p class="image is-64x64"><img class="thumbnail" src="/img/post/weekly_review.png" alt="코드숨 React 5기 - 1주차 회고"></p></a><div class="media-content size-small"><p><time dateTime="2021-08-15T14:51:47.000Z">2021-08-15</time></p><p class="title is-6"><a class="link-muted" href="/2021/08/15/codesum-week-1/">코드숨 React 5기 - 1주차 회고</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/til/">TIL</a></p></div></article><article class="media"><a class="media-left" href="/2021/02/25/seminar-execution-context/"><p class="image is-64x64"><img class="thumbnail" src="/img/post/JavaScriptImg.png" alt="JS 실행 컨텍스트 이해하기"></p></a><div class="media-content size-small"><p><time dateTime="2021-02-25T11:50:00.000Z">2021-02-25</time></p><p class="title is-6"><a class="link-muted" href="/2021/02/25/seminar-execution-context/">JS 실행 컨텍스트 이해하기</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/programming/">Programming</a> / <a class="link-muted" href="/categories/programming/javascript/">JavaScript</a></p></div></article><article class="media"><a class="media-left" href="/2020/10/27/brandi-internship-3/"><p class="image is-64x64"><img class="thumbnail" src="/img/post/wecode.png" alt="Brandi Internship - Part 3"></p></a><div class="media-content size-small"><p><time dateTime="2020-10-27T10:18:47.000Z">2020-10-27</time></p><p class="title is-6"><a class="link-muted" href="/2020/10/27/brandi-internship-3/">Brandi Internship - Part 3</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/">개인적인</a> / <a class="link-muted" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/%EC%97%90%EC%84%B8%EC%9D%B4/">에세이</a></p></div></article><article class="media"><a class="media-left" href="/2020/10/26/brandi-internship-2/"><p class="image is-64x64"><img class="thumbnail" src="/img/post/wecode.png" alt="Brandi Internship - Part 2"></p></a><div class="media-content size-small"><p><time dateTime="2020-10-26T10:18:47.000Z">2020-10-26</time></p><p class="title is-6"><a class="link-muted" href="/2020/10/26/brandi-internship-2/">Brandi Internship - Part 2</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/">개인적인</a> / <a class="link-muted" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/%EC%97%90%EC%84%B8%EC%9D%B4/">에세이</a></p></div></article><article class="media"><a class="media-left" href="/2020/10/25/brandi-internship-1/"><p class="image is-64x64"><img class="thumbnail" src="/img/post/wecode.png" alt="Brandi Internship - Part 1"></p></a><div class="media-content size-small"><p><time dateTime="2020-10-25T04:51:47.000Z">2020-10-25</time></p><p class="title is-6"><a class="link-muted" href="/2020/10/25/brandi-internship-1/">Brandi Internship - Part 1</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/">개인적인</a> / <a class="link-muted" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/%EC%97%90%EC%84%B8%EC%9D%B4/">에세이</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">카테고리</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/programming/"><span class="level-start"><span class="level-item">Programming</span></span><span class="level-end"><span class="level-item tag">12</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/programming/css/"><span class="level-start"><span class="level-item">CSS</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/programming/html/"><span class="level-start"><span class="level-item">HTML</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/programming/javascript/"><span class="level-start"><span class="level-item">JavaScript</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/programming/git/"><span class="level-start"><span class="level-item">git</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/programming/%EA%B8%B0%ED%83%80/"><span class="level-start"><span class="level-item">기타</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/til/"><span class="level-start"><span class="level-item">TIL</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/"><span class="level-start"><span class="level-item">개인적인</span></span><span class="level-end"><span class="level-item tag">7</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/%EB%AC%B5%EC%83%81/"><span class="level-start"><span class="level-item">묵상</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%EA%B0%9C%EC%9D%B8%EC%A0%81%EC%9D%B8/%EC%97%90%EC%84%B8%EC%9D%B4/"><span class="level-start"><span class="level-item">에세이</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li></ul></li></ul></div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/default/dev_logo.jpeg" alt="dev&#039;log" height="28"></a><p class="size-small"><span>&copy; 2021 Dave Kim</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/psy082/psy082.git"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("ko");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://psy082.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="Zurück nach oben" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="입력 하세요..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"입력 하세요...","untitled":"(Untitled)","posts":"포스트","pages":"Pages","categories":"카테고리","tags":"태그"});
+        });</script></body></html>
